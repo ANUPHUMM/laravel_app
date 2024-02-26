@@ -2,10 +2,11 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_HUB_USERNAME = credentials('docker-hub-username')
-        DOCKER_HUB_PASSWORD = credentials('docker-hub-password')
-        DOCKER_HUB_REPO = 'your-docker-hub-username/laravel-app'
+        DOCKER_HUB_USERNAME = credentials('anup88')
+        DOCKER_HUB_PASSWORD = credentials('home12345')
+        DOCKER_HUB_REPO = 'anup88/laravel-app'
         DOCKER_IMAGE_NAME = 'laravel-app'
+        DOCKERFILE_PATH = 'Dockerfile'
     }
     
     stages {
@@ -13,7 +14,7 @@ pipeline {
             steps {
                 script {
                     // Build Docker image
-                    docker.build("${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}")
+                    docker.build("${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}", "-f ${DOCKERFILE_PATH} .")
                 }
             }
         }
@@ -21,11 +22,9 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Login to Docker Hub
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_USERNAME, DOCKER_HUB_PASSWORD) {
-                        // Push Docker image to Docker Hub
+                    // Login to Docker Hub and push Docker image
+                    docker.withRegistry(credentialsId: 'docker-hub-credentials', url: '') {
                         docker.image("${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}").push()
-                        // Tag and push latest
                         docker.image("${DOCKER_HUB_REPO}:${env.BUILD_NUMBER}").tag("${DOCKER_HUB_REPO}:latest")
                         docker.image("${DOCKER_HUB_REPO}:latest").push()
                     }
